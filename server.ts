@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -7,6 +8,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createRequire } from "module";
+import { evaluateResumeToJobs, evaluateJobToResumes } from "./src/services/geminiMatcher";
 
 const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
@@ -108,6 +110,56 @@ app.get("/api/jobs", async (req, res) => {
   } catch (error) {
     console.error("Jobs error:", error);
     res.status(500).json({ error: "Failed to fetch jobs" });
+  }
+});
+
+// Feature 1: Candidate Resume Upload -> Ranked Job Matches (Batched Gemini Prompt)
+app.post("/api/match/resume-to-jobs", upload.single("resume"), async (req, res) => {
+  try {
+    let resumeText = req.body?.resumeText || "";
+
+    // If PDF uploaded via multipart
+    if (req.file) {
+      const dataBuffer = await fs.readFile(req.file.path);
+      const pdfData = await pdfParse(dataBuffer);
+      resumeText = pdfData.text || "";
+      await fs.unlink(req.file.path); // clean up
+    }
+
+    if (!resumeText || resumeText.trim().length === 0) {
+      return res.status(400).json({ error: "Please provide resume text or upload a PDF resume." });
+    }
+
+    let jobs = undefined;
+    if (req.body?.jobs) {
+      try {
+        jobs = typeof req.body.jobs === "string" ? JSON.parse(req.body.jobs) : req.body.jobs;
+      } catch {
+        // use default
+      }
+    }
+
+    const result = await evaluateResumeToJobs(ai, { resumeText, jobs });
+    res.json(result);
+  } catch (error) {
+    console.error("Semantic matching error (resume-to-jobs):", error);
+    res.status(500).json({ error: "Failed to evaluate semantic job matches. Please try again." });
+  }
+});
+
+// Feature 2: Employer Candidate Ranking (Job-to-Resumes batched reverse scoring)
+app.post("/api/match/job-to-resumes", async (req, res) => {
+  try {
+    const { jobId, job, resumes } = req.body;
+    if (!jobId && !job) {
+      return res.status(400).json({ error: "jobId or job object is required" });
+    }
+
+    const result = await evaluateJobToResumes(ai, { jobId: jobId || job?.id, job, resumes });
+    res.json(result);
+  } catch (error) {
+    console.error("Semantic matching error (job-to-resumes):", error);
+    res.status(500).json({ error: "Failed to rank candidates for this job. Please try again." });
   }
 });
 
