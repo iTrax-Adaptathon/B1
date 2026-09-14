@@ -125,15 +125,15 @@ export default function ResumeMatcher() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">AI Resume Screening</h1>
+      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-8">AI Resume Screening</h1>
       
       <div className="grid lg:grid-cols-2 gap-8">
         
         {/* Left Column: Upload & Parse */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Upload size={20} />
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <Upload size={20} className="text-blue-600 dark:text-blue-400" />
               Upload Resume
             </h2>
             <form onSubmit={handleUpload} className="space-y-4">
@@ -141,29 +141,29 @@ export default function ResumeMatcher() {
                 type="file" 
                 accept=".pdf"
                 onChange={e => setFile(e.target.files?.[0] || null)}
-                className="block w-full text-sm text-slate-500
+                className="block w-full text-xs text-slate-500 dark:text-slate-400
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
+                  file:text-xs file:font-semibold
+                  file:bg-blue-50 dark:file:bg-blue-950/60 file:text-blue-700 dark:file:text-blue-300
                   hover:file:bg-blue-100"
               />
               <button 
                 type="submit" 
                 disabled={!file || isUploading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-xs font-bold transition-colors"
               >
                 {isUploading ? 'Parsing...' : 'Analyze Resume'}
               </button>
             </form>
 
             {resumeSummary && (
-              <div className="mt-6 pt-6 border-t border-slate-100">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <FileText size={18} className="text-blue-600" />
+              <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2 text-xs">
+                  <FileText size={16} className="text-blue-600 dark:text-blue-400" />
                   AI Summary
                 </h3>
-                <div className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 p-4 rounded-lg">
+                <div className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl leading-relaxed">
                   {resumeSummary}
                 </div>
               </div>
@@ -171,26 +171,26 @@ export default function ResumeMatcher() {
           </div>
 
           {/* Saved Applicants */}
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold mb-4">Saved Candidates</h2>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Saved Candidates</h2>
             {savedApplicants.length === 0 ? (
-              <p className="text-sm text-slate-500">No candidates saved yet.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">No candidates saved yet.</p>
             ) : (
               <div className="space-y-4">
                 {savedApplicants.map(app => (
-                  <div key={app.id} className="border border-slate-100 p-4 rounded-lg">
+                  <div key={app.id} className="border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-4 rounded-xl">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold">{app.candidateName}</h4>
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${
-                        app.compatibilityPercentage >= 80 ? 'bg-green-100 text-green-700' :
-                        app.compatibilityPercentage >= 50 ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-700'
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">{app.candidateName}</h4>
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                        app.compatibilityPercentage >= 80 ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300' :
+                        app.compatibilityPercentage >= 50 ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300' :
+                        'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
                       }`}>
                         {app.compatibilityPercentage}% Match
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mb-2">Job: {app.jobTitle}</p>
-                    <p className="text-sm text-slate-600 line-clamp-2">{app.resumeSummary}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">Job: {app.jobTitle}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{app.resumeSummary}</p>
                   </div>
                 ))}
               </div>
@@ -200,9 +200,9 @@ export default function ResumeMatcher() {
 
         {/* Right Column: Job Matching */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Briefcase size={20} />
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <Briefcase size={20} className="text-blue-600 dark:text-blue-400" />
               Find Job Description
             </h2>
             <form onSubmit={handleSearchJobs} className="flex gap-2 mb-6">
@@ -211,26 +211,26 @@ export default function ResumeMatcher() {
                 placeholder="e.g. Frontend Developer"
                 value={jobQuery}
                 onChange={e => setJobQuery(e.target.value)}
-                className="flex-grow border border-slate-300 rounded-lg p-2"
+                className="flex-grow bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white"
               />
               <button 
                 type="submit"
-                className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 flex items-center gap-2"
+                className="px-4 py-2 bg-slate-900 dark:bg-slate-800 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-700 flex items-center gap-2 text-xs font-semibold"
               >
-                <Search size={18} />
+                <Search size={16} />
                 Search
               </button>
             </form>
 
             <div className="space-y-4 max-h-[300px] overflow-y-auto">
               {jobs.map(job => (
-                <div key={job.id} className="p-4 border border-slate-100 rounded-lg hover:border-blue-300 transition-colors">
-                  <h4 className="font-semibold">{job.title}</h4>
-                  <p className="text-xs text-slate-500 mb-3">{job.company_name}</p>
+                <div key={job.id} className="p-4 border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">{job.title}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{job.company_name}</p>
                   <button
                     onClick={() => handleRank(job)}
                     disabled={isRanking || !resumeText}
-                    className="text-sm px-3 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 font-medium disabled:opacity-50"
+                    className="text-xs px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/60 font-semibold disabled:opacity-50"
                   >
                     {isRanking && selectedJob?.id === job.id ? 'Analyzing...' : 'Rank Candidate Against Job'}
                   </button>
@@ -240,36 +240,36 @@ export default function ResumeMatcher() {
           </div>
 
           {rankingResult && (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
               <div className="flex justify-between items-start mb-6">
-                <h2 className="text-xl font-bold flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Percent size={20} />
                   Match Results
                 </h2>
                 <div className="text-right">
                   <div className={`text-3xl font-extrabold ${
-                    rankingResult.compatibilityPercentage >= 80 ? 'text-green-600' :
-                    rankingResult.compatibilityPercentage >= 50 ? 'text-amber-500' :
-                    'text-red-500'
+                    rankingResult.compatibilityPercentage >= 80 ? 'text-green-600 dark:text-green-400' :
+                    rankingResult.compatibilityPercentage >= 50 ? 'text-amber-500 dark:text-amber-400' :
+                    'text-red-500 dark:text-red-400'
                   }`}>
                     {rankingResult.compatibilityPercentage}%
                   </div>
-                  <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Compatibility</div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Compatibility</div>
                 </div>
               </div>
 
-              <p className="text-slate-700 mb-6 italic border-l-4 border-slate-200 pl-4">
+              <p className="text-xs text-slate-700 dark:text-slate-300 mb-6 italic border-l-4 border-slate-200 dark:border-slate-700 pl-4">
                 "{rankingResult.explanation}"
               </p>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="grid md:grid-cols-2 gap-6 mb-6 text-xs">
                 <div>
-                  <h4 className="font-semibold flex items-center gap-2 text-green-700 mb-3">
-                    <CheckCircle size={16} /> Key Matches
+                  <h4 className="font-bold flex items-center gap-2 text-green-700 dark:text-green-400 mb-3">
+                    <CheckCircle size={15} /> Key Matches
                   </h4>
                   <ul className="space-y-2">
                     {rankingResult.keyMatches?.map((match: string, i: number) => (
-                      <li key={i} className="text-sm flex items-start gap-2">
+                      <li key={i} className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
                         <span className="text-green-500 mt-0.5">•</span>
                         <span>{match}</span>
                       </li>
@@ -278,12 +278,12 @@ export default function ResumeMatcher() {
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold flex items-center gap-2 text-red-700 mb-3">
-                    <AlertCircle size={16} /> Skills Gaps
+                  <h4 className="font-bold flex items-center gap-2 text-red-700 dark:text-red-400 mb-3">
+                    <AlertCircle size={15} /> Skills Gaps
                   </h4>
                   <ul className="space-y-2">
                     {rankingResult.skillsGaps?.map((gap: string, i: number) => (
-                      <li key={i} className="text-sm flex items-start gap-2">
+                      <li key={i} className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
                         <span className="text-red-500 mt-0.5">•</span>
                         <span>{gap}</span>
                       </li>
@@ -294,7 +294,7 @@ export default function ResumeMatcher() {
 
               <button 
                 onClick={handleSaveApplicant}
-                className="w-full py-3 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800"
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-800 dark:hover:bg-slate-700 shadow-sm transition-colors"
               >
                 Save Applicant to Local Storage
               </button>
