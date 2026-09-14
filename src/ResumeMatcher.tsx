@@ -13,6 +13,7 @@ export default function ResumeMatcher() {
   const [isUploading, setIsUploading] = useState(false);
   const [resumeText, setResumeText] = useState('');
   const [resumeSummary, setResumeSummary] = useState('');
+  const [uploadError, setUploadError] = useState('');
   
   const [isRanking, setIsRanking] = useState(false);
   const [rankingResult, setRankingResult] = useState<any>(null);
@@ -39,6 +40,7 @@ export default function ResumeMatcher() {
     if (!file) return;
 
     setIsUploading(true);
+    setUploadError('');
     const formData = new FormData();
     formData.append('resume', file);
 
@@ -47,12 +49,15 @@ export default function ResumeMatcher() {
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
-      setResumeText(data.rawText);
-      setResumeSummary(data.summary);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'The resume could not be analyzed.');
+      }
+      setResumeText(typeof data.rawText === 'string' ? data.rawText : '');
+      setResumeSummary(typeof data.summary === 'string' ? data.summary : 'Resume parsed successfully.');
     } catch (err) {
       console.error(err);
-      alert('Failed to parse resume');
+      setUploadError(err instanceof Error ? err.message : 'Failed to parse resume.');
     } finally {
       setIsUploading(false);
     }
@@ -156,6 +161,13 @@ export default function ResumeMatcher() {
                 {isUploading ? 'Parsing...' : 'Analyze Resume'}
               </button>
             </form>
+
+            {uploadError && (
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300" role="alert">
+                <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                <span>{uploadError}</span>
+              </div>
+            )}
 
             {resumeSummary && (
               <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
