@@ -13,6 +13,33 @@ import { evaluateResumeToJobs, evaluateJobToResumes } from "./src/services/gemin
 const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
 
+/** Support both pdf-parse v1 (callable export) and v2 (PDFParse class). */
+async function extractPdfText(dataBuffer: Buffer): Promise<string> {
+  if (typeof pdfParse === "function") {
+    const result = await pdfParse(dataBuffer);
+    return result?.text || "";
+  }
+
+  if (pdfParse?.PDFParse) {
+    const parser = new pdfParse.PDFParse({ data: dataBuffer });
+    try {
+      const result = await parser.getText();
+      return result?.text || "";
+    } finally {
+      await parser.destroy();
+    }
+  }
+
+  throw new Error("Unsupported pdf-parse export");
+}
+
+function createFallbackResumeSummary(resumeText: string): string {
+  const normalized = resumeText.replace(/\s+/g, " ").trim();
+  if (!normalized) return "No readable text was found in this PDF.";
+  const preview = normalized.length > 420 ? `${normalized.slice(0, 420)}…` : normalized;
+  return `Resume parsed successfully. Key profile text: ${preview}`;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -36,20 +63,27 @@ app.post("/api/parse-resume", upload.single("resume"), async (req, res) => {
     }
 
     const dataBuffer = await fs.readFile(file.path);
-    const pdfData = await pdfParse(dataBuffer);
-    const resumeText = pdfData.text;
+    const resumeText = await extractPdfText(dataBuffer);
 
-    await fs.unlink(file.path); // clean up
+    await fs.unlink(file.path).catch(() => undefined); // clean up
 
-    // Provide AI summary
-    const prompt = `Summarize this resume for candidate screening. Identify key skills, experience level, and a short overall profile:\n\n${resumeText.substring(0, 10000)}`;
-    const aiResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-    
+    // AI summary is optional: parsing must still work without a configured API key.
+    let summary = createFallbackResumeSummary(resumeText);
+    if (process.env.GEMINI_API_KEY && resumeText.trim()) {
+      try {
+        const prompt = `Summarize this resume for candidate screening. Identify key skills, experience level, and a short overall profile:\n\n${resumeText.substring(0, 10000)}`;
+        const aiResponse = await ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents: prompt,
+        });
+        summary = aiResponse.text?.trim() || summary;
+      } catch (summaryError) {
+        console.warn("Resume summary unavailable; using local fallback:", summaryError);
+      }
+    }
+
     res.json({
-      summary: aiResponse.text,
+      summary,
       rawText: resumeText,
     });
   } catch (error) {
@@ -83,7 +117,7 @@ Please analyze and provide a JSON response with the following format exactly, no
 }
 `;
     const aiResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json"
@@ -121,9 +155,8 @@ app.post("/api/match/resume-to-jobs", upload.single("resume"), async (req, res) 
     // If PDF uploaded via multipart
     if (req.file) {
       const dataBuffer = await fs.readFile(req.file.path);
-      const pdfData = await pdfParse(dataBuffer);
-      resumeText = pdfData.text || "";
-      await fs.unlink(req.file.path); // clean up
+      resumeText = await extractPdfText(dataBuffer);
+      await fs.unlink(req.file.path).catch(() => undefined); // clean up
     }
 
     if (!resumeText || resumeText.trim().length === 0) {
@@ -174,9 +207,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
+    app.use(express.static(__dirname));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path.join(__dirname, "index.html"));
     });
   }
 
