@@ -1,4 +1,4 @@
-# TalentConnect 🚀
+@ TalentConnect 🚀
 
 TalentConnect is a modern, full-stack job board platform designed to seamlessly connect employers with job seekers. It features a dual-sided marketplace tailored for both hiring managers and candidates, enriched with an AI-powered resume screening pipeline.
 
