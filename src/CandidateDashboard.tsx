@@ -43,6 +43,7 @@ export default function CandidateDashboard() {
       jobId,
       candidateId: user?.uid,
       candidateName: user?.displayName || 'Candidate',
+      resumeText: user?.bio ? `${user.displayName} - ${user.targetRole || ''}. ${user.qualifications || ''}. ${user.bio}` : undefined,
       appliedAt: new Date().toISOString()
     });
     localStorage.setItem('mock_applications', JSON.stringify(allApps));

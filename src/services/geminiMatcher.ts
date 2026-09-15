@@ -50,6 +50,26 @@ export function heuristicMatch(resume: string, job: JobPosting): MatchResult {
   const isDesignJob = lowerJob.includes("designer") || lowerJob.includes("figma") || lowerJob.includes("prototypes") || lowerJob.includes("user research");
   const hasDesignExperience = lowerResume.includes("figma") || lowerResume.includes("user-centric") || lowerResume.includes("design systems") || lowerResume.includes("user research");
 
+  // Full Stack concepts
+  const isFullStackJob = lowerJob.includes("full stack") || (lowerJob.includes("react") && lowerJob.includes("node"));
+  const hasFullStackExperience = lowerResume.includes("full stack") || (lowerResume.includes("react") && lowerResume.includes("node")) || lowerResume.includes("graphql");
+
+  // SRE / Observability concepts
+  const isSREJob = lowerJob.includes("sre") || lowerJob.includes("reliability") || lowerJob.includes("observability");
+  const hasSREExperience = lowerResume.includes("sre") || lowerResume.includes("reliability") || lowerResume.includes("prometheus") || lowerResume.includes("chaos");
+
+  // Security concepts
+  const isSecurityJob = lowerJob.includes("security") || lowerJob.includes("appsec") || lowerJob.includes("cryptography");
+  const hasSecurityExperience = lowerResume.includes("security") || lowerResume.includes("soc 2") || lowerResume.includes("zero trust") || lowerResume.includes("vulnerability");
+
+  // Data Engineering concepts
+  const isDataJob = lowerJob.includes("data platform") || lowerJob.includes("kafka") || lowerJob.includes("spark") || lowerJob.includes("data engineer");
+  const hasDataExperience = lowerResume.includes("kafka") || lowerResume.includes("spark") || lowerResume.includes("etl") || lowerResume.includes("snowflake");
+
+  // Mobile concepts
+  const isMobileJob = lowerJob.includes("mobile") || lowerJob.includes("ios") || lowerJob.includes("react native") || lowerJob.includes("swift");
+  const hasMobileExperience = lowerResume.includes("mobile") || lowerResume.includes("react native") || lowerResume.includes("ios") || lowerResume.includes("swift");
+
   if (isBackendJob && hasBackendExperience) {
     skillsOverlap = 92;
     experienceLevelFit = 88;
@@ -90,6 +110,88 @@ export function heuristicMatch(resume: string, job: JobPosting): MatchResult {
       reasoning: "Direct alignment on stakeholder communication for AI/ML models."
     });
     gaps.push("Large-scale distributed training frameworks not explicitly cited");
+  } else if (isFullStackJob && hasFullStackExperience) {
+    skillsOverlap = 93;
+    experienceLevelFit = 88;
+    domainRelevance = 91;
+    matchedEvidence.push({
+      resumePhrase: "building web applications using React, Next.js, Node.js, and TypeScript",
+      jobPhrase: "work across both client-side React codebases and backend TypeScript microservices",
+      reasoning: "Exact end-to-end full stack proficiency across TypeScript, React, and Node.js."
+    });
+    matchedEvidence.push({
+      resumePhrase: "Designed GraphQL schemas and RESTful microservices backed by PostgreSQL",
+      jobPhrase: "relational database modeling, transactions, and event streaming",
+      reasoning: "Direct hands-on API design and database modeling in production web applications."
+    });
+  } else if (isDevOpsJob && hasDevOpsExperience) {
+    skillsOverlap = 94;
+    experienceLevelFit = 90;
+    domainRelevance = 93;
+    matchedEvidence.push({
+      resumePhrase: "managing AWS environments, Kubernetes clusters (EKS), and multi-region networking",
+      jobPhrase: "managing high-availability cloud platforms on AWS or GCP... Kubernetes (EKS/GKE)",
+      reasoning: "Exact alignment on AWS cloud infrastructure and Kubernetes cluster administration."
+    });
+    matchedEvidence.push({
+      resumePhrase: "Automated complete cloud provisioning using Terraform and Helm charts",
+      jobPhrase: "Infrastructure-as-Code via Terraform",
+      reasoning: "Production Infrastructure as Code implementation matching operational requirements."
+    });
+  } else if (isSREJob && (hasSREExperience || hasDevOpsExperience)) {
+    skillsOverlap = 92;
+    experienceLevelFit = 88;
+    domainRelevance = 90;
+    matchedEvidence.push({
+      resumePhrase: "Led chaos engineering experiments and disaster recovery drills across distributed microservices",
+      jobPhrase: "disaster recovery, and latency optimization across distributed microservices",
+      reasoning: "Demonstrated production incident prevention, disaster recovery, and resilience engineering."
+    });
+  } else if (isSecurityJob && hasSecurityExperience) {
+    skillsOverlap = 95;
+    experienceLevelFit = 90;
+    domainRelevance = 94;
+    matchedEvidence.push({
+      resumePhrase: "threat modeling, secure code reviews, and vulnerability management",
+      jobPhrase: "threat modeling across our global services... secure code reviews",
+      reasoning: "Direct match on application security architecture and vulnerability remediation."
+    });
+  } else if (isDataJob && hasDataExperience) {
+    skillsOverlap = 93;
+    experienceLevelFit = 87;
+    domainRelevance = 91;
+    matchedEvidence.push({
+      resumePhrase: "streaming and batch ETL pipelines using Apache Kafka, Apache Spark, and Snowflake",
+      jobPhrase: "streaming and batch data processing pipelines... Apache Kafka, write Spark transformations",
+      reasoning: "Direct hands-on experience with Kafka streaming and Spark analytical transformations."
+    });
+  } else if (isMobileJob && hasMobileExperience) {
+    skillsOverlap = 94;
+    experienceLevelFit = 88;
+    domainRelevance = 92;
+    matchedEvidence.push({
+      resumePhrase: "designing cross-platform applications in React Native and native iOS (Swift)",
+      jobPhrase: "building mobile applications in React Native, Swift (iOS), or Kotlin (Android)",
+      reasoning: "Exact match on cross-platform React Native and native Swift iOS mobile development."
+    });
+  } else if (isFrontendJob && hasFrontendExperience) {
+    skillsOverlap = 91;
+    experienceLevelFit = 86;
+    domainRelevance = 89;
+    matchedEvidence.push({
+      resumePhrase: "Responsive, accessible client interfaces with Tailwind CSS and Zustand",
+      jobPhrase: "React, Next.js, and TypeScript... modern CSS, Tailwind CSS",
+      reasoning: "Comprehensive front-end UI architecture and design implementation capability."
+    });
+  } else if (isDesignJob && hasDesignExperience) {
+    skillsOverlap = 93;
+    experienceLevelFit = 89;
+    domainRelevance = 92;
+    matchedEvidence.push({
+      resumePhrase: "Expert in Figma component architecture, interactive prototypes",
+      jobPhrase: "Figma fluency... concept sketches through high-fidelity prototypes",
+      reasoning: "Strong design systems and interactive prototyping skills directly fulfill Figma design requirements."
+    });
   } else if (isBackendJob && hasMLExperience) {
     skillsOverlap = 68;
     experienceLevelFit = 72;
@@ -100,22 +202,6 @@ export function heuristicMatch(resume: string, job: JobPosting): MatchResult {
       reasoning: "Experience deploying APIs in Python, though primarily for ML inference rather than core Node.js runtime."
     });
     gaps.push("Node.js runtime experience is missing (candidate works primarily in Python/PyTorch)", "Relational database schema scaling not highlighted");
-  } else if (isDesignJob && hasDesignExperience) {
-    skillsOverlap = 93;
-    experienceLevelFit = 89;
-    domainRelevance = 92;
-    matchedEvidence.push({
-      resumePhrase: "Expert in Figma component architecture, interactive prototypes",
-      jobPhrase: "Figma fluency... concept sketches through high-fidelity prototypes",
-      reasoning: "Strong design systems and interactive prototyping skills directly fulfill Figma design requirements."
-    });
-    gaps.push("Experience in fin-tech or regulated workflows not explicitly detailed");
-  } else if (isDesignJob && (hasBackendExperience || hasMLExperience)) {
-    skillsOverlap = 20;
-    experienceLevelFit = 50;
-    domainRelevance = 18;
-    gaps.push("No UI/UX design portfolio, Figma experience, or user research background");
-    gaps.push("Candidate profile is focused on engineering / machine learning rather than product design");
   } else if (isDevOpsJob && hasBackendExperience) {
     skillsOverlap = 65;
     experienceLevelFit = 75;
@@ -136,6 +222,12 @@ export function heuristicMatch(resume: string, job: JobPosting): MatchResult {
       reasoning: "Familiarity with React components, though primarily focused on internal tooling rather than consumer UI."
     });
     gaps.push("Advanced CSS layout and state management (Zustand, Redux) not prominently featured");
+  } else if (isDesignJob && (hasBackendExperience || hasMLExperience)) {
+    skillsOverlap = 20;
+    experienceLevelFit = 50;
+    domainRelevance = 18;
+    gaps.push("No UI/UX design portfolio, Figma experience, or user research background");
+    gaps.push("Candidate profile is focused on engineering / machine learning rather than product design");
   } else {
     skillsOverlap = 35;
     experienceLevelFit = 50;
@@ -172,7 +264,7 @@ export function heuristicMatch(resume: string, job: JobPosting): MatchResult {
  * Batched Gemini Prompt Execution for Resume -> Multiple Jobs
  */
 export async function evaluateResumeToJobs(
-  ai: GoogleGenAI,
+  ai: GoogleGenAI | null,
   options: ResumeToJobsOptions
 ): Promise<{ matches: MatchResult[]; truncated: boolean }> {
   let { resumeText, jobs } = options;
@@ -232,7 +324,7 @@ For each job:
 - "summary": one concise plain-English sentence explaining the ranking
 `;
 
-  if (process.env.GEMINI_API_KEY) {
+  if (process.env.GEMINI_API_KEY && ai) {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-3.6-flash",
@@ -287,7 +379,7 @@ For each job:
  * Batched Gemini Prompt Execution for One Job -> Multiple Candidate Resumes (Reverse Matching)
  */
 export async function evaluateJobToResumes(
-  ai: GoogleGenAI,
+  ai: GoogleGenAI | null,
   options: JobToResumesOptions
 ): Promise<{ matches: CandidateMatchResult[] }> {
   let { jobId, job, resumes } = options;
@@ -348,7 +440,7 @@ For each candidate:
 - "summary": one concise plain-English sentence
 `;
 
-  if (process.env.GEMINI_API_KEY) {
+  if (process.env.GEMINI_API_KEY && ai) {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-3.6-flash",

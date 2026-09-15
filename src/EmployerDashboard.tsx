@@ -18,7 +18,7 @@ export default function EmployerDashboard() {
   const [location, setLocation] = useState('');
 
   const handleLoadSeedData = () => {
-    initializeSeedData(true);
+    initializeSeedData(true, user?.uid);
     const allJobs = JSON.parse(localStorage.getItem('mock_jobs') || '[]');
     setJobs(allJobs.filter((j: any) => j.employerId === user?.uid));
   };
@@ -30,10 +30,16 @@ export default function EmployerDashboard() {
     const fetchJobs = () => {
       let allJobs = JSON.parse(localStorage.getItem('mock_jobs') || '[]');
       if (allJobs.length === 0) {
-        initializeSeedData();
+        initializeSeedData(false, user.uid);
         allJobs = JSON.parse(localStorage.getItem('mock_jobs') || '[]');
       }
-      setJobs(allJobs.filter((j: any) => j.employerId === user.uid));
+      let employerJobs = allJobs.filter((j: any) => j.employerId === user.uid || (!j.employerId && user.uid === 'mock-user-123'));
+      if (employerJobs.length === 0) {
+        initializeSeedData(true, user.uid);
+        allJobs = JSON.parse(localStorage.getItem('mock_jobs') || '[]');
+        employerJobs = allJobs.filter((j: any) => j.employerId === user.uid);
+      }
+      setJobs(employerJobs);
     };
 
     fetchJobs();

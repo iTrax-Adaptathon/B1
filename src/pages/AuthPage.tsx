@@ -21,7 +21,7 @@ import {
 export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signIn, signUp } = useAuth();
+  const { user, signIn, signUp, logout } = useAuth();
 
   const defaultMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
   const defaultRole = searchParams.get('role') === 'employer' ? 'employer' : 'candidate';
@@ -83,6 +83,10 @@ export default function AuthPage() {
 
   // Quick sign in for demos
   const handleDemoSignIn = async (demoRole: 'employer' | 'candidate') => {
+    if (user && user.role && user.role !== demoRole) {
+      setError(`You are currently signed in as a ${user.role === 'employer' ? 'Employer' : 'Candidate'}. You cannot switch between employee and employer without signing out first.`);
+      return;
+    }
     setLoading(true);
     setError(null);
     const identifier = demoRole === 'employer' ? 'employer@demo.com' : 'candidate@demo.com';
@@ -114,6 +118,11 @@ export default function AuthPage() {
         setError(result.error || 'Invalid credentials.');
       }
     } else {
+      if (user && user.role && user.role !== role) {
+        setError(`You are currently signed in as a ${user.role === 'employer' ? 'Employer' : 'Candidate'}. You cannot switch between employee and employer without signing out first.`);
+        setLoading(false);
+        return;
+      }
       // Sign up validation
       if (!email || !password || !displayName) {
         setError('Please fill in all required fields (Name, Email, Password).');
@@ -159,55 +168,98 @@ export default function AuthPage() {
             <span>TalentConnect</span>
           </Link>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {mode === 'signin' ? 'Welcome Back' : 'Create Your Account'}
+            {user ? 'Active Session Detected' : (mode === 'signin' ? 'Welcome Back' : 'Create Your Account')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            {mode === 'signin'
-              ? 'Sign in to access your dashboard, jobs, and candidate matches.'
-              : 'Join the next generation of AI-driven talent screening and career matching.'}
+            {user
+              ? `You are currently logged in as a ${user.role === 'employer' ? 'Employer' : 'Job Seeker (Candidate)'}.`
+              : (mode === 'signin'
+                ? 'Sign in to access your dashboard, jobs, and candidate matches.'
+                : 'Join the next generation of AI-driven talent screening and career matching.')}
           </p>
         </div>
 
         {/* Card Container */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-8 transition-colors">
-          {/* Mode Switcher Tabs */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6">
-            <button
-              type="button"
-              onClick={() => { setMode('signin'); setError(null); }}
-              className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${
-                mode === 'signin'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMode('signup'); setError(null); }}
-              className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${
-                mode === 'signup'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Create Account (Sign Up)
-            </button>
-          </div>
-
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-6 p-3.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-2.5 text-xs text-red-700 dark:text-red-400">
-              <AlertCircle size={16} className="flex-shrink-0" />
-              <span>{error}</span>
+        {user ? (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-8 transition-colors text-center space-y-6">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-xs">
+              {user.role === 'employer' ? <Building2 size={32} /> : <User size={32} />}
             </div>
-          )}
 
-          {/* SIGN IN FORM */}
-          {mode === 'signin' ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+            <div>
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 ${
+                user.role === 'employer'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                  : 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300'
+              }`}>
+                <span>Active Role: {user.role === 'employer' ? 'Employer' : 'Candidate'}</span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                Signed in as {user.displayName}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+                You cannot switch between employee and employer without signing out first. Please sign out if you wish to switch accounts or change roles.
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <span>Go to My Dashboard</span>
+                <ArrowRight size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-700 dark:text-slate-200 hover:text-red-600 dark:hover:text-red-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700"
+              >
+                <span>Sign Out to Switch Accounts</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-8 transition-colors">
+            {/* Mode Switcher Tabs */}
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6">
+              <button
+                type="button"
+                onClick={() => { setMode('signin'); setError(null); }}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${
+                  mode === 'signin'
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('signup'); setError(null); }}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${
+                  mode === 'signup'
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Create Account (Sign Up)
+              </button>
+            </div>
+
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-6 p-3.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-2.5 text-xs text-red-700 dark:text-red-400">
+                <AlertCircle size={16} className="flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* SIGN IN FORM */}
+            {mode === 'signin' ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Email Address or User ID
                 </label>
@@ -531,6 +583,7 @@ export default function AuthPage() {
             </form>
           )}
         </div>
+        )}
       </div>
     </div>
   );

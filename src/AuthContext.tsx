@@ -124,6 +124,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         u.password === password
     );
 
+    // Determine target role
+    const isEmployerInput = trimmedInput.includes("employer") || trimmedInput.includes("hr") || trimmedInput.includes("admin");
+    const targetRole = found ? found.role : (isEmployerInput ? "employer" : "candidate");
+
+    // Enforce role switching constraint: cannot switch between employee and employer without signing out first
+    if (user && user.role && user.role !== targetRole) {
+      return {
+        success: false,
+        error: `You are currently signed in as a ${user.role === 'employer' ? 'Employer' : 'Candidate'}. You must sign out before switching between employee and employer.`
+      };
+    }
+
     if (found) {
       const { password: _, ...userSafe } = found;
       localStorage.setItem("mock_user", JSON.stringify(userSafe));
@@ -133,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Flexible fallback for demo testing
     if (password === "password123" || password === "demo123" || password === "admin") {
-      const isEmployer = trimmedInput.includes("employer") || trimmedInput.includes("hr") || trimmedInput.includes("admin");
+      const isEmployer = isEmployerInput;
       const fallbackUser: AppUser = {
         uid: `user-${Date.now()}`,
         userId: trimmedInput.split("@")[0],
@@ -156,6 +168,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (data: SignUpData): Promise<{ success: boolean; error?: string }> => {
     if (!data.email || !data.password) {
       return { success: false, error: "Email and password are required." };
+    }
+
+    // Enforce role switching constraint: cannot switch between employee and employer without signing out first
+    if (user && user.role && user.role !== data.role) {
+      return {
+        success: false,
+        error: `You are currently signed in as a ${user.role === 'employer' ? 'Employer' : 'Candidate'}. You must sign out before switching between employee and employer.`
+      };
     }
 
     const allUsers = JSON.parse(localStorage.getItem("mock_users_list") || "[]");
@@ -220,7 +240,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = (data: Partial<AppUser>) => {
     if (user) {
-      const updatedUser = { ...user, ...data };
+      // Disallow mutating role directly via profile update
+      const { role: _role, ...safeData } = data;
+      const updatedUser = { ...user, ...safeData };
       localStorage.setItem("mock_user", JSON.stringify(updatedUser));
       setUser(updatedUser);
 
@@ -228,7 +250,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const allUsers = JSON.parse(localStorage.getItem("mock_users_list") || "[]");
       const idx = allUsers.findIndex((u: any) => u.uid === user.uid);
       if (idx !== -1) {
-        allUsers[idx] = { ...allUsers[idx], ...data };
+        allUsers[idx] = { ...allUsers[idx], ...safeData };
         localStorage.setItem("mock_users_list", JSON.stringify(allUsers));
       }
     }
